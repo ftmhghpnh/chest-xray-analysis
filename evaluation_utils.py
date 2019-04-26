@@ -73,7 +73,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     else:
         pass
-
+    fig = plt.figure()
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
