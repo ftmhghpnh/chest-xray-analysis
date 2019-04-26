@@ -8,7 +8,7 @@ from evaluation_utils import accuracy_precision_recall_fscore, save_confusion_ma
 from models import OneLayerClassifier
 
 tf.enable_eager_execution()
-base_path = '/home/chavosh/CheXpert-v1.0-small'
+base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"

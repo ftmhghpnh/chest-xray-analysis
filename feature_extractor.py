@@ -8,7 +8,7 @@ from models import XceptionBottleneck, VGG19Bottleneck, DenseNet121Bottleneck, R
 tf.enable_eager_execution()
 
 very_base_path = '/home/chavosh'
-base_path = os.path.join(very_base_path, 'CheXpert-v1.0-small')
+base_path = os.path.join(very_base_path, 'chest-xray-analysis')
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
 
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
