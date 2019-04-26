@@ -46,8 +46,11 @@ def accuracy_precision_recall_fscore(pred_probs, true_labels, num_classes):
     return acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores
 
 
-def roc_auc_calculator(pred_probs, true_labels):
-    return roc_auc_score(true_labels, pred_probs, sample_weight=true_labels > -0.5)
+def roc_auc_calculator(true_labels, pred_probs):
+    labels = np.array(true_labels)
+    labels[labels < 0.5] = 0
+    labels = labels.astype(int)
+    return roc_auc_score(labels, pred_probs, sample_weight=true_labels > -0.5)
 
 
 def roc_auc(pred_probs, true_labels, num_classes):
