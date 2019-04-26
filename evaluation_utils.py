@@ -95,11 +95,14 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 
 
 def save_confusion_matrix(pred_probs, true_labels, case_array, path_fig):
+    labels = np.array(true_labels)
+    labels[labels < 0.5] = 0
+    labels = labels.astype(int)
     pred = np.array(pred_probs)
     pred[pred > 0.5] = 1
     pred[pred <= 0.5] = 0
     for i in range(len(case_array)):
-        cm = confusion_matrix(true_labels[:, i], pred[:, i], sample_weight=true_labels[:, i] > -0.5)
+        cm = confusion_matrix(labels[:, i], pred[:, i], sample_weight=true_labels[:, i] > -0.5)
         plot_confusion_matrix(cm, ['0', '1'], normalize=True, title=case_array[i], path_fig=path_fig.format(case_array[i]))
 
 
