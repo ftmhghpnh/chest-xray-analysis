@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
-from models import OneLayerClassifier
+from models import FeedForwardClassifier
 
 tf.enable_eager_execution()
 base_path = '/home/chavosh/chest-xray-analysis'
@@ -14,7 +14,7 @@ case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural 
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
 batch_size = 64
-n_epochs = 100
+n_epochs = 1
 learning_rate = 0.0001
 train_loss_iteration = []
 train_loss_epoch = []
@@ -36,7 +36,9 @@ train_label_dataset = tf.data.Dataset.from_tensor_slices(Y_train)
 train_dataset = tf.data.Dataset.zip((train_features_dataset, train_label_dataset))
 train_dataset = train_dataset.batch(batch_size) 
 
-classifier = OneLayerClassifier(n_classes=len(case_array))
+classifier = FeedForwardClassifier(n_classes=len(case_array), layer_dims=[20 * len(case_array), 5 * len(case_array)],
+                                   activations=[tf.keras.activations.sigmoid, tf.keras.activations.sigmoid],
+                                   drop_out_flag=True, drop_out_rate=0.5)
 optimizer = tf.train.AdamOptimizer(learning_rate)
 
 

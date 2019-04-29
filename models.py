@@ -59,15 +59,21 @@ class DenseNet121Bottleneck(tf.keras.Model):
         return result
 
 
-class OneLayerClassifier(tf.keras.Model):
+class FeedForwardClassifier(tf.keras.Model):
 
-    def __init__(self, n_classes):
-        super(OneLayerClassifier, self).__init__()
-        # Define the layer(s) you would like to use for your classifier
-        self.dense_layer = tf.keras.layers.Dense(units=n_classes)
+    def __init__(self, n_classes, layer_dims, activations, drop_out_flag=False, drop_out_rate=0.5):
+        # layer_dims is number of layer before the last layer
+        super(FeedForwardClassifier, self).__init__()
+        self.dense_layers = []
+        for idx, layer_dim in enumerate(layer_dims):
+            self.dense_layers.append(tf.keras.layers.Dense(units=layer_dim, activation=activations[idx]))
+            if drop_out_flag:
+                self.dense_layers.append(tf.keras.layers.Dropout(drop_out_rate))
+        self.final_layer = tf.keras.layers.Dense(units=n_classes)
 
     def call(self, inputs):
-        # Set this up appropriately, will depend on how many layers you choose
-        result = self.dense_layer(inputs)
-
+        result = tf.identity(inputs)
+        for i in range(len(self.dense_layers)):
+            result = self.dense_layers[i](result)
+        result = self.final_layer(result)
         return result
