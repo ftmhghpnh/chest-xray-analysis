@@ -77,3 +77,19 @@ class FeedForwardClassifier(tf.keras.Model):
             result = self.dense_layers[i](result)
         result = self.final_layer(result)
         return result
+
+
+class XceptionEnd2End(tf.keras.Model):
+
+    def __init__(self, n_classes):
+        super(XceptionEnd2End, self).__init__()
+
+        self.initial_layers = Xception(weights='imagenet', include_top=False)
+        self.pooling_layer = GlobalAveragePooling2D()
+        self.final_layer = tf.keras.layers.Dense(units=n_classes)
+
+    def call(self, inputs):
+        result = self.initial_layers(inputs)
+        result = self.pooling_layer(result)
+        result = self.final_layer(result)
+        return result
