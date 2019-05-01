@@ -59,6 +59,20 @@ class DenseNet121Bottleneck(tf.keras.Model):
         return result
 
 
+class MobileNetBottleneck(tf.keras.Model):
+
+    def __init__(self):
+        super(MobileNetBottleneck, self).__init__()
+
+        self.initial_layers = MobileNet(weights='imagenet', include_top=False)
+        self.pooling_layer = GlobalAveragePooling2D()
+
+    def call(self, inputs):
+        result = self.initial_layers(inputs)
+        result = self.pooling_layer(result)
+        return result
+
+
 class FeedForwardClassifier(tf.keras.Model):
 
     def __init__(self, n_classes, layer_dims, activations, drop_out_flag=False, drop_out_rate=0.5):

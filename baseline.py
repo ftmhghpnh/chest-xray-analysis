@@ -10,17 +10,18 @@ from models import FeedForwardClassifier
 tf.enable_eager_execution()
 base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
+test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
 batch_size = 64
-n_epochs = 1
+n_epochs = 100
 learning_rate = 0.0001
 train_loss_iteration = []
 train_loss_epoch = []
 val_loss_epoch = []
 
-data = np.load(os.path.join(base_path, 'Xception_bottle_neck.npz'))
+data = np.load(os.path.join(base_path, 'VGG19_bottle_neck.npz'))
 X_train, index_train = data['bottle_necks'],  data['indexes']
 X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.2, random_state=40)
 Y_train = train_table.loc[index_train, case_array].values
@@ -34,7 +35,11 @@ Y_val[np.isnan(Y_val)] = -1
 train_features_dataset = tf.data.Dataset.from_tensor_slices(X_train)
 train_label_dataset = tf.data.Dataset.from_tensor_slices(Y_train)
 train_dataset = tf.data.Dataset.zip((train_features_dataset, train_label_dataset))
-train_dataset = train_dataset.batch(batch_size) 
+train_dataset = train_dataset.batch(batch_size)
+
+data = np.load(os.path.join(base_path, 'VGG19_bottle_neck_test.npz'))
+X_test, index_test = data['bottle_necks'],  data['indexes']
+Y_test = train_table.loc[index_train, case_array].values
 
 classifier = FeedForwardClassifier(n_classes=len(case_array), layer_dims=[20 * len(case_array), 5 * len(case_array)],
                                    activations=[tf.keras.activations.sigmoid, tf.keras.activations.sigmoid],
@@ -75,3 +80,18 @@ plot_loss_curve([train_loss_epoch, val_loss_epoch], ['Train', 'Validation'], 'Lo
                 os.path.join(base_path, 'loss_curve_epoch'), 'Epoch')
 plot_loss_curve([train_loss_iteration], ['Train'], 'Train loss curve per iteration',
                 os.path.join(base_path, 'loss_curve_iter'), 'Iteration')
+
+print()
+print(acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores)
+print(roc_auc_overall, roc_aucs)
+
+logits = classifier(tf.constant(X_test))
+Y_pred = tf.nn.sigmoid(logits).numpy()
+acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores = \
+    accuracy_precision_recall_fscore(Y_pred, Y_test, len(case_array))
+roc_auc_overall, roc_aucs = roc_auc(Y_pred, Y_test, len(case_array))
+save_confusion_matrix(Y_pred, Y_test, case_array, os.path.join(base_path, 'test_conf_mat_{}'))
+
+print()
+print(acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores)
+print(roc_auc_overall, roc_aucs)

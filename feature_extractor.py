@@ -3,13 +3,13 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 import numpy as np
-from models import XceptionBottleneck, VGG19Bottleneck, DenseNet121Bottleneck, ResNet50Bottleneck
+from models import XceptionBottleneck, VGG19Bottleneck, DenseNet121Bottleneck, ResNet50Bottleneck, MobileNetBottleneck
 
 tf.enable_eager_execution()
 
-very_base_path = '/home/chavosh'
-base_path = os.path.join(very_base_path, 'chest-xray-analysis')
+base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
+test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
 
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 ans = [-1, 1]
@@ -55,7 +55,11 @@ def cache_bottleneck_layers(file_paths, batch_size, model):
 
 
 train_selected = train_table.loc[(train_table[case_array[0]].isin(ans) | train_table[case_array[1]].isin(ans) | train_table[case_array[2]].isin(ans) | train_table[case_array[3]].isin(ans) | train_table[case_array[4]].isin(ans))]
-train_file_paths = [os.path.join(very_base_path, path) for path in train_selected['Path'].tolist()]
+train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in train_selected['Path'].tolist()]
+test_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in test_table['Path'].tolist()]
 
 bottle_necks = cache_bottleneck_layers(train_file_paths, batch_size=64, model=VGG19Bottleneck())
+bottle_necks_test = cache_bottleneck_layers(test_file_paths, batch_size=64, model=VGG19Bottleneck())
+
 np.savez(os.path.join(base_path, 'VGG19_bottle_neck.npz'), bottle_necks=bottle_necks, indexes=train_selected.index.values)
+np.savez(os.path.join(base_path, 'VGG19_bottle_neck_test.npz'), bottle_necks=bottle_necks_test, indexes=test_table.index.values)
