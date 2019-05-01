@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.applications import Xception, VGG19, ResNet50, DenseNet121
+from tensorflow.keras.applications import Xception, VGG19, ResNet50, DenseNet121, MobileNet
 from tensorflow.keras.layers import GlobalAveragePooling2D
 
 
@@ -93,3 +93,20 @@ class XceptionEnd2End(tf.keras.Model):
         result = self.pooling_layer(result)
         result = self.final_layer(result)
         return result
+
+
+class MobileNetEnd2End(tf.keras.Model):
+
+    def __init__(self, n_classes):
+        super(MobileNetEnd2End, self).__init__()
+
+        self.initial_layers = MobileNet(weights='imagenet', include_top=False)
+        self.pooling_layer = GlobalAveragePooling2D()
+        self.final_layer = tf.keras.layers.Dense(units=n_classes)
+
+    def call(self, inputs):
+        result = self.initial_layers(inputs)
+        result = self.pooling_layer(result)
+        result = self.final_layer(result)
+        return result
+
