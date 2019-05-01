@@ -39,7 +39,7 @@ train_dataset = train_dataset.batch(batch_size)
 
 data = np.load(os.path.join(base_path, 'VGG19_bottle_neck_test.npz'))
 X_test, index_test = data['bottle_necks'],  data['indexes']
-Y_test = train_table.loc[index_train, case_array].values
+Y_test = test_table.loc[index_test, case_array].values
 
 classifier = FeedForwardClassifier(n_classes=len(case_array), layer_dims=[20 * len(case_array), 5 * len(case_array)],
                                    activations=[tf.keras.activations.sigmoid, tf.keras.activations.sigmoid],

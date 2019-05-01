@@ -9,7 +9,9 @@ tf.enable_eager_execution()
 
 base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
+train_table = train_table.loc[train_table['Frontal/Lateral'] == 'Frontal']
 test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
+test_table = test_table.loc[test_table['Frontal/Lateral'] == 'Frontal']
 
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 ans = [-1, 1]
