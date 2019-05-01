@@ -16,7 +16,7 @@ device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 ans = [-1, 1]
 batch_size = 64
-n_epochs = 1
+n_epochs = 20
 learning_rate = 0.0001
 train_loss_iteration = []
 train_loss_epoch = []
@@ -29,7 +29,7 @@ def create_dataset_images(file_paths):
     def _parse_function(filename):
         image_string = tf.read_file(filename)
         image_decoded = tf.image.decode_jpeg(image_string, channels=3)
-        image_resized = tf.image.resize_images(image_decoded, [200, 200])
+        image_resized = tf.image.resize_images(image_decoded, [224, 224])
         return image_resized
 
     file_paths = tf.constant(file_paths)
@@ -43,7 +43,7 @@ def create_dataset_images(file_paths):
 train_selected = train_table.loc[(
             train_table[case_array[0]].isin(ans) | train_table[case_array[1]].isin(ans) | train_table[
         case_array[2]].isin(ans) | train_table[case_array[3]].isin(ans) | train_table[case_array[4]].isin(ans))]
-train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[:1])) for path in train_selected['Path'].tolist()]
+train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in train_selected['Path'].tolist()]
 
 X_train, index_train = train_file_paths, train_selected.index.values
 X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.2, random_state=40)
@@ -64,6 +64,9 @@ classifier = MobileNetEnd2End(len(case_array))
 optimizer = tf.train.AdamOptimizer(learning_rate)
 
 val_images_dataset = create_dataset_images(X_val)
+val_label_dataset = tf.data.Dataset.from_tensor_slices(Y_val)
+val_dataset = tf.data.Dataset.zip((val_images_dataset, val_label_dataset))
+val_dataset = val_dataset.batch(batch_size)
 
 
 def loss_calculator(inp, targ):
@@ -86,11 +89,24 @@ with tf.device(device):
 
             if batch % 100 == 0:
                 print('\rEpoch: {}, Batch: {}, Loss: {}'.format(epoch, batch, train_loss_iteration[-1]), end='')
-        train_loss_epoch.append(loss_calculator(tf.constant(X_train), tf.constant(Y_train)))
-        val_loss_epoch.append(loss_calculator(tf.constant(X_val), tf.constant(val_images_dataset)))
 
-logits = classifier(tf.constant(val_images_dataset))
-Y_pred = tf.nn.sigmoid(logits).numpy()
+        losses = []
+        for batch, (images, labels) in enumerate(train_dataset):
+            losses.append(loss_calculator(images, labels))
+        train_loss_epoch.append(sum(losses) / len(losses))
+
+        losses = []
+        for batch, (images, labels) in enumerate(val_dataset):
+            losses.append(loss_calculator(images, labels))
+        val_loss_epoch.append(sum(losses) / len(losses))
+
+with tf.device(device):
+    Y_pred = []
+    for batch, (images, labels) in enumerate(val_dataset):
+        logits = classifier(images)
+        Y_pred.append(tf.nn.sigmoid(logits).numpy())
+    Y_pred = np.vstack(Y_pred)
+
 acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores = \
     accuracy_precision_recall_fscore(Y_pred, Y_val, len(case_array))
 roc_auc_overall, roc_aucs = roc_auc(Y_pred, Y_val, len(case_array))
