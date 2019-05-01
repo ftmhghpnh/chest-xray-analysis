@@ -11,6 +11,9 @@ tf.enable_eager_execution()
 
 base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
+train_table = train_table.loc[train_table['Frontal/Lateral'] == 'Frontal']
+test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
+test_table = test_table.loc[test_table['Frontal/Lateral'] == 'Frontal']
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
@@ -44,6 +47,7 @@ train_selected = train_table.loc[(
             train_table[case_array[0]].isin(ans) | train_table[case_array[1]].isin(ans) | train_table[
         case_array[2]].isin(ans) | train_table[case_array[3]].isin(ans) | train_table[case_array[4]].isin(ans))]
 train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in train_selected['Path'].tolist()]
+test_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in test_table['Path'].tolist()]
 
 X_train, index_train = train_file_paths, train_selected.index.values
 X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.2, random_state=40)
@@ -60,6 +64,7 @@ train_label_dataset = tf.data.Dataset.from_tensor_slices(Y_train)
 train_dataset = tf.data.Dataset.zip((train_images_dataset, train_label_dataset))
 train_dataset = train_dataset.batch(batch_size)
 
+
 classifier = MobileNetEnd2End(len(case_array))
 optimizer = tf.train.AdamOptimizer(learning_rate)
 
@@ -67,6 +72,15 @@ val_images_dataset = create_dataset_images(X_val)
 val_label_dataset = tf.data.Dataset.from_tensor_slices(Y_val)
 val_dataset = tf.data.Dataset.zip((val_images_dataset, val_label_dataset))
 val_dataset = val_dataset.batch(batch_size)
+
+
+X_test, index_test = test_file_paths,  test_table.index.values
+Y_test = test_table.loc[index_test, case_array].values
+
+test_images_dataset = create_dataset_images(X_test)
+test_label_dataset = tf.data.Dataset.from_tensor_slices(Y_test)
+test_dataset = tf.data.Dataset.zip((test_images_dataset, test_label_dataset))
+test_dataset = test_dataset.batch(batch_size)
 
 
 def loss_calculator(inp, targ):
@@ -115,6 +129,23 @@ plot_loss_curve([train_loss_epoch, val_loss_epoch], ['Train', 'Validation'], 'Lo
                 os.path.join(base_path, 'loss_curve_epoch'), 'Epoch')
 plot_loss_curve([train_loss_iteration], ['Train'], 'Train loss curve per iteration',
                 os.path.join(base_path, 'loss_curve_iter'), 'Iteration')
+
+print()
+print(acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores)
+print(roc_auc_overall, roc_aucs)
+
+with tf.device(device):
+    Y_pred = []
+    for batch, (images, labels) in enumerate(test_dataset):
+        logits = classifier(images)
+        Y_pred.append(tf.nn.sigmoid(logits).numpy())
+    Y_pred = np.vstack(Y_pred)
+
+acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores = \
+    accuracy_precision_recall_fscore(Y_pred, Y_test, len(case_array))
+roc_auc_overall, roc_aucs = roc_auc(Y_pred, Y_test, len(case_array))
+save_confusion_matrix(Y_pred, Y_test, case_array, os.path.join(base_path, 'test_conf_mat_{}'))
+
 print()
 print(acc_overall, accs, precision_overall, precisions, recall_overall, recalls, fscore_overall, fscores)
 print(roc_auc_overall, roc_aucs)
