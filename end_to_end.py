@@ -5,7 +5,7 @@ import tensorflow.contrib.eager as tfe
 import numpy as np
 from sklearn.model_selection import train_test_split
 from evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
-from models import XceptionEnd2End, MobileNetEnd2End
+from models import XceptionEnd2End, MobileNetEnd2End, DensNetEnd2End
 
 tf.enable_eager_execution()
 
@@ -31,8 +31,8 @@ def create_dataset_images(file_paths):
     # to a fixed shape. Read more here: https://www.tensorflow.org/guide/datasets#decoding_image_data_and_resizing_it
     def _parse_function(filename):
         image_string = tf.read_file(filename)
-        image_decoded = tf.image.decode_jpeg(image_string, channels=3)
-        image_resized = tf.image.resize_images(image_decoded, [224, 224])
+        image_decoded = tf.image.decode_jpeg(image_string)
+        image_resized = tf.image.resize_images(image_decoded, [320, 320])
         return image_resized
 
     file_paths = tf.constant(file_paths)
@@ -65,7 +65,7 @@ train_dataset = tf.data.Dataset.zip((train_images_dataset, train_label_dataset))
 train_dataset = train_dataset.batch(batch_size)
 
 
-classifier = MobileNetEnd2End(len(case_array))
+classifier = DensNetEnd2End(len(case_array))
 optimizer = tf.train.AdamOptimizer(learning_rate)
 
 val_images_dataset = create_dataset_images(X_val)

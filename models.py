@@ -124,3 +124,16 @@ class MobileNetEnd2End(tf.keras.Model):
         result = self.final_layer(result)
         return result
 
+
+class DensNetEnd2End(tf.keras.Model):
+
+    def __init__(self, n_classes):
+        super(DensNetEnd2End, self).__init__()
+
+        self.all_layers = DenseNet121(include_top=True, weights=None, input_tensor=None, input_shape=(320, 320),
+                                          pooling=None, classe=n_classes)
+
+    def call(self, inputs):
+        result = self.all_layers(inputs)
+        return result
+
