@@ -18,8 +18,8 @@ device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
 case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 ans = [-1, 1]
-batch_size = 64
-n_epochs = 20
+batch_size = 16
+n_epochs = 5
 learning_rate = 0.0001
 train_loss_iteration = []
 train_loss_epoch = []
