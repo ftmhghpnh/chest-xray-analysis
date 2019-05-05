@@ -131,7 +131,7 @@ class DensNetEnd2End(tf.keras.Model):
         super(DensNetEnd2End, self).__init__()
 
         self.all_layers = DenseNet121(include_top=True, weights=None, input_tensor=None, input_shape=(320, 320),
-                                          pooling=None, classe=n_classes)
+                                          pooling=None, classes=n_classes)
 
     def call(self, inputs):
         result = self.all_layers(inputs)
