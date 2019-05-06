@@ -11,15 +11,18 @@ tf.enable_eager_execution()
 
 base_path = '/home/chavosh/chest-xray-analysis'
 train_table = pd.read_csv(os.path.join(base_path, 'train.csv'))
-train_table = train_table.loc[train_table['Frontal/Lateral'] == 'Frontal']
+# train_table = train_table.loc[train_table['Frontal/Lateral'] == 'Frontal']
 test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
-test_table = test_table.loc[test_table['Frontal/Lateral'] == 'Frontal']
+# test_table = test_table.loc[test_table['Frontal/Lateral'] == 'Frontal']
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
-case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
-ans = [-1, 1]
+# case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
+case_array = ['No Finding', 'Enlarged', 'Cardiomediastinum', 'Cardiomegaly', 'Lung Opacity', 'Lung Lesion', 'Edema',
+              'Consolidation', 'Pneumonia' , 'Atelectasis', 'Pneumothorax', 'Pleural Effusion', 'Pleural Other',
+              'Fracture', 'Support Devices']
+# ans = [-1, 1]
 batch_size = 16
-n_epochs = 5
+n_epochs = 3
 learning_rate = 0.0001
 train_loss_iteration = []
 train_loss_epoch = []
@@ -43,13 +46,13 @@ def create_dataset_images(file_paths):
     return dataset
 
 
-train_selected = train_table.loc[(
-            train_table[case_array[0]].isin(ans) | train_table[case_array[1]].isin(ans) | train_table[
-        case_array[2]].isin(ans) | train_table[case_array[3]].isin(ans) | train_table[case_array[4]].isin(ans))]
-train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in train_selected['Path'].tolist()]
+# train_selected = train_table.loc[(
+#             train_table[case_array[0]].isin(ans) | train_table[case_array[1]].isin(ans) | train_table[
+#         case_array[2]].isin(ans) | train_table[case_array[3]].isin(ans) | train_table[case_array[4]].isin(ans))]
+train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in train_table['Path'].tolist()]
 test_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in test_table['Path'].tolist()]
 
-X_train, index_train = train_file_paths, train_selected.index.values
+X_train, index_train = train_file_paths, train_table.index.values
 X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.2, random_state=40)
 Y_train = train_table.loc[index_train, case_array].values
 
