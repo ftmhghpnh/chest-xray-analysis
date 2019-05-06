@@ -17,7 +17,7 @@ test_table = pd.read_csv(os.path.join(base_path, 'valid.csv'))
 device = "gpu:0" if tfe.num_gpus() else "cpu:0"
 
 # case_array = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
-case_array = ['No Finding', 'Enlarged', 'Cardiomediastinum', 'Cardiomegaly', 'Lung Opacity', 'Lung Lesion', 'Edema',
+case_array = ['Enlarged Cardiomediastinum', 'Cardiomegaly', 'Lung Opacity', 'Lung Lesion', 'Edema',
               'Consolidation', 'Pneumonia' , 'Atelectasis', 'Pneumothorax', 'Pleural Effusion', 'Pleural Other',
               'Fracture', 'Support Devices']
 # ans = [-1, 1]
@@ -53,7 +53,7 @@ train_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for p
 test_file_paths = [os.path.join(base_path, '/'.join(path.split('/')[1:])) for path in test_table['Path'].tolist()]
 
 X_train, index_train = train_file_paths, train_table.index.values
-X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.2, random_state=40)
+X_train, X_val, index_train, index_val = train_test_split(X_train, index_train, test_size=0.05, random_state=40)
 Y_train = train_table.loc[index_train, case_array].values
 
 Y_train[Y_train == -1] = 0
