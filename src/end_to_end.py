@@ -4,8 +4,8 @@ import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 import numpy as np
 from sklearn.model_selection import train_test_split
-from evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
-from models import XceptionEnd2End, MobileNetEnd2End, DenseNetEnd2End
+from src.evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
+from src.models import DenseNetEnd2End
 
 tf.enable_eager_execution()
 

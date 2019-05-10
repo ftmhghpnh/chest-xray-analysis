@@ -4,8 +4,8 @@ import tensorflow.contrib.eager as tfe
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
-from models import FeedForwardClassifier
+from src.evaluation_utils import accuracy_precision_recall_fscore, save_confusion_matrix, roc_auc, plot_loss_curve
+from src.models import FeedForwardClassifier
 
 tf.enable_eager_execution()
 base_path = '/home/chavosh/chest-xray-analysis'

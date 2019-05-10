@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 import numpy as np
-from models import XceptionBottleneck, VGG19Bottleneck, DenseNet121Bottleneck, ResNet50Bottleneck, MobileNetBottleneck
+from src.models import VGG19Bottleneck
 
 tf.enable_eager_execution()
 
