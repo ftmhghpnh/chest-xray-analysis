@@ -130,10 +130,14 @@ class DenseNetEnd2End(tf.keras.Model):
     def __init__(self, n_classes):
         super(DenseNetEnd2End, self).__init__()
 
-        self.all_layers = DenseNet121(include_top=True, weights=None, input_tensor=None, input_shape=(320, 320, 1),
-                                          pooling=None, classes=n_classes)
+        self.all_layers = DenseNet121(include_top=False, weights='imagenet', input_tensor=None,
+                                      input_shape=(320, 320, 3), pooling=None, classes=n_classes)
+        self.pooling_layer = GlobalAveragePooling2D()
+        self.final_layer = tf.keras.layers.Dense(units=n_classes)
 
     def call(self, inputs):
         result = self.all_layers(inputs)
+        result = self.pooling_layer(result)
+        result = self.final_layer(result)
         return result
 

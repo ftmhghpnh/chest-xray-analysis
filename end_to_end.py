@@ -34,7 +34,7 @@ def create_dataset_images(file_paths):
     # to a fixed shape. Read more here: https://www.tensorflow.org/guide/datasets#decoding_image_data_and_resizing_it
     def _parse_function(filename):
         image_string = tf.read_file(filename)
-        image_decoded = tf.image.decode_jpeg(image_string)
+        image_decoded = tf.image.decode_jpeg(image_string, channels=3)
         image_resized = tf.image.resize_images(image_decoded, [320, 320])
         return image_resized
 
